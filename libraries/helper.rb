@@ -70,6 +70,15 @@ module EphemeralLvm
               "/dev/disk/by-id/google-#{disk["deviceName"]}"
             end
           end
+          #ephemeral_devices might be empty still. I guess it's caused by different chef versions
+          #second try to discover attached disks
+          if ephemeral_devices.empty?
+            ephemeral_devices =node[cloud]['instance']['attributes']['disks'].map do |disk|
+              if ( disk['type'] == "EPHEMERAL" or disk['type'] == "LOCAL-SSD") && disk['deviceName'].match(/^local-ssd-\d+$/)
+                "/dev/disk/by-id/google-#{disk["deviceName"]}"
+              end
+            end
+          end
           # Removes nil elements from the ephemeral_devices array if any.
           ephemeral_devices.compact!
         else
